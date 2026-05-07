@@ -4,11 +4,11 @@
   const categories = [
     ["all", "All"],
     ["web", "Web Designs"],
-    ["crypto", "Startup Projects"],
+    ["crypto", "Startup"],
     ["nft", "NFT"],
-    ["thread", "Campaign Graphics"],
+    ["thread", "Launch Graphics"],
     ["motion", "Animated Signatures"],
-    ["brand", "Brand Graphics"]
+    ["brand", "Branding"]
   ];
   const webDesignOrder = [
     "upvotic-landing",
@@ -59,6 +59,8 @@
 
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
+  const itemIndexById = (id) => items.findIndex((item) => item.id === id);
+
   const mediaMarkup = (item, lazy = true) => `
     <div class="project-media" style="--card-image: url('${item.src}')">
       <img
@@ -103,8 +105,15 @@
   `;
 
   const bindOpeners = (scope = document) => {
-    $$("[data-index]", scope).forEach((button) => {
-      button.addEventListener("click", () => openLightbox(Number(button.dataset.index)));
+    $$("[data-index], [data-open-id]", scope).forEach((button) => {
+      if (button.dataset.boundOpener) return;
+      button.dataset.boundOpener = "true";
+      button.addEventListener("click", () => {
+        const index = button.dataset.openId
+          ? itemIndexById(button.dataset.openId)
+          : Number(button.dataset.index);
+        if (index >= 0) openLightbox(index);
+      });
       button.addEventListener("pointermove", (event) => {
         const rect = button.getBoundingClientRect();
         button.style.setProperty("--mx", `${((event.clientX - rect.left) / rect.width) * 100}%`);
@@ -114,7 +123,7 @@
   };
 
   const bindPointerGlow = (scope = document) => {
-    $$(".home-tile, .home-project-card", scope).forEach((node) => {
+    $$(".home-tile, .home-project-card, .editorial-card, .web-shot, .archive-row", scope).forEach((node) => {
       node.addEventListener("pointermove", (event) => {
         const rect = node.getBoundingClientRect();
         node.style.setProperty("--mx", `${((event.clientX - rect.left) / rect.width) * 100}%`);
@@ -278,7 +287,11 @@
       const button = event.target.closest("[data-filter]");
       if (!button) return;
       $$("[data-filter]", target).forEach((node) => node.setAttribute("aria-pressed", String(node === button)));
-      renderGallery(button.dataset.filter);
+      if ($("[data-archive-list]")) {
+        renderArchiveExperience(button.dataset.filter);
+      } else {
+        renderGallery(button.dataset.filter);
+      }
     });
   };
 
@@ -319,6 +332,51 @@
     const webItems = galleryItems().filter((item) => item.webCase);
     target.innerHTML = webItems.map((item) => caseMarkup(item, items.indexOf(item))).join("");
     bindOpeners(target);
+  };
+
+  const renderArchiveExperience = (filter = "all") => {
+    const list = $("[data-archive-list]");
+    if (!list) return;
+    const strip = $("[data-archive-strip]");
+    const count = $("[data-archive-count]");
+    const source = galleryItems();
+    const filtered = filter === "all" ? source : source.filter((item) => item.category === filter);
+    activeItems = filtered;
+    if (count) count.textContent = `${filtered.length} items`;
+
+    const visualItems = filtered.filter((item) => !item.animated).slice(0, 14);
+    if (strip) {
+      strip.innerHTML = `
+        <div class="archive-strip-track">
+          ${visualItems.map((item) => `
+            <button class="strip-thumb reveal" type="button" data-index="${items.indexOf(item)}" aria-label="Open ${escaped(item.title)} preview">
+              <img src="${item.src}" alt="${escaped(item.title)}" width="${item.width}" height="${item.height}" loading="lazy" decoding="async">
+              <span>${escaped(item.title)}</span>
+            </button>
+          `).join("")}
+        </div>
+      `;
+      bindOpeners(strip);
+    }
+
+    list.innerHTML = filtered.map((item) => `
+      <button class="archive-row reveal" type="button" data-index="${items.indexOf(item)}" aria-label="Open ${escaped(item.title)} preview">
+        <span class="archive-year">${escaped(item.year)}</span>
+        <span class="archive-thumb">
+          <img src="${item.src}" alt="" width="${item.width}" height="${item.height}" loading="lazy" decoding="async">
+        </span>
+        <span class="archive-main">
+          <strong>${escaped(item.title)}</strong>
+          <em>${escaped(item.description)}</em>
+        </span>
+        <span class="archive-kind">${escaped(item.kind)}</span>
+        <span class="archive-view">View &rarr;</span>
+      </button>
+    `).join("");
+    bindOpeners(list);
+    bindPointerGlow(list);
+    revealNow(list);
+    if (strip) revealNow(strip);
   };
 
   const renderWebsiteSlots = () => {
@@ -585,8 +643,75 @@
     });
   };
 
+  const setupMobileNav = () => {
+    const header = $("[data-header]");
+    const nav = $(".nav-shell");
+    if (!header || !nav || $(".nav-toggle", nav)) return;
+    const toggle = document.createElement("button");
+    toggle.className = "nav-toggle";
+    toggle.type = "button";
+    toggle.setAttribute("aria-label", "Open navigation");
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.innerHTML = "<span></span><span></span>";
+    nav.append(toggle);
+
+    const panel = document.createElement("div");
+    panel.className = "mobile-nav-panel";
+    panel.setAttribute("aria-hidden", "true");
+    panel.innerHTML = `
+      <a href="index.html" data-mobile-nav="home">Home</a>
+      <a href="projects.html" data-mobile-nav="projects">All Projects</a>
+      <a href="web-designs.html" data-mobile-nav="web">Web Designs</a>
+      <a href="crypto-startups.html" data-mobile-nav="crypto">Startup Projects</a>
+      <a href="${escaped(site.linkedin)}" data-linkedin target="_blank" rel="noreferrer">LinkedIn</a>
+    `;
+    header.append(panel);
+
+    const close = () => {
+      document.body.classList.remove("nav-open");
+      toggle.setAttribute("aria-expanded", "false");
+      panel.setAttribute("aria-hidden", "true");
+    };
+    const open = () => {
+      document.body.classList.add("nav-open");
+      toggle.setAttribute("aria-expanded", "true");
+      panel.setAttribute("aria-hidden", "false");
+    };
+
+    toggle.addEventListener("click", () => {
+      if (document.body.classList.contains("nav-open")) close();
+      else open();
+    });
+    $$("a", panel).forEach((link) => link.addEventListener("click", close));
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") close();
+    });
+  };
+
+  const setupCinematicMotion = () => {
+    $$("[data-parallax-stage]").forEach((stage) => {
+      const layers = $$("[data-depth]", stage);
+      stage.addEventListener("pointermove", (event) => {
+        const rect = stage.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width - 0.5;
+        const y = (event.clientY - rect.top) / rect.height - 0.5;
+        layers.forEach((layer) => {
+          const depth = Number(layer.dataset.depth || 0);
+          layer.style.setProperty("--parallax-x", `${(x * depth * 120).toFixed(1)}px`);
+          layer.style.setProperty("--parallax-y", `${(y * depth * 90).toFixed(1)}px`);
+        });
+      });
+      stage.addEventListener("pointerleave", () => {
+        layers.forEach((layer) => {
+          layer.style.setProperty("--parallax-x", "0px");
+          layer.style.setProperty("--parallax-y", "0px");
+        });
+      });
+    });
+  };
+
   const revealNow = (scope = document) => {
-    $$(".project-card, .case-row, .future-slot", scope).forEach((node, index) => {
+    $$(".project-card, .case-row, .future-slot, .archive-row, .strip-thumb", scope).forEach((node, index) => {
       node.classList.add("reveal");
       node.style.transitionDelay = `${Math.min(index * 28, 180)}ms`;
       requestAnimationFrame(() => node.classList.add("is-visible"));
@@ -594,7 +719,10 @@
   };
 
   const setupReveals = () => {
-    const revealNodes = $$(".reveal");
+    const heroNodes = $$(".cinematic-hero [data-reveal]");
+    heroNodes.forEach((node) => requestAnimationFrame(() => node.classList.add("is-visible")));
+
+    const revealNodes = $$("[data-reveal], .reveal").filter((node) => !node.closest(".cinematic-hero"));
     if (!("IntersectionObserver" in window)) {
       revealNodes.forEach((node) => node.classList.add("is-visible"));
       return;
@@ -616,12 +744,17 @@
   renderArchiveStrip();
   buildFilterBar();
   renderGallery();
+  renderArchiveExperience();
   renderWebList();
   renderWebsiteSlots();
   renderDetailGallery();
   setupNav();
+  setupMobileNav();
   setupProgress();
   setupPageMotion();
   setupLightbox();
+  setupCinematicMotion();
+  bindPointerGlow(document);
+  bindOpeners(document);
   setupReveals();
 })();
