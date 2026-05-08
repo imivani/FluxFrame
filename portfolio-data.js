@@ -5,14 +5,7 @@ window.FLUXFRAME_SITE = {
   "texture": "assets/portfolio/36-fluxframe-texture.png",
   "concept": "assets/concepts/fluxframe-generated-concept.png",
   "linkedin": "https://www.linkedin.com/in/imivani/",
-  "websitesToAdd": [
-    {
-      "title": "Future Website Case Study",
-      "status": "Ready for link",
-      "url": "#",
-      "note": "Reserved for live site links, launch notes, and selected screenshots."
-    }
-  ]
+  "websitesToAdd": []
 };
 
 window.FLUXFRAME_ITEMS = [
@@ -179,7 +172,7 @@ window.FLUXFRAME_ITEMS = [
   {
     "id": "hype-bears-cover",
     "title": "Hype Bears",
-    "kind": "Startup Project / NFT Launch",
+    "kind": "Startup Project",
     "category": "crypto",
     "description": "Dark Hype Bears identity artwork.",
     "src": "assets/portfolio/11-hype-bears-cover.png",
@@ -1059,7 +1052,7 @@ window.FLUXFRAME_ITEMS = [
   {
     "id": "hype-bears-hero",
     "title": "Hype Bears",
-    "kind": "Startup Project / NFT Launch",
+    "kind": "Startup Project",
     "category": "crypto",
     "description": "Black-and-gold Hype Bears hero banner.",
     "src": "assets/portfolio/66-hype-bears-hero.jpeg",

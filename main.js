@@ -6,7 +6,7 @@
     ["web", "Web Designs"],
     ["crypto", "Startup"],
     ["nft", "NFT"],
-    ["thread", "Launch Graphics"],
+    ["thread", "Graphics"],
     ["motion", "Animated Signatures"],
     ["brand", "Branding"]
   ];
@@ -172,19 +172,19 @@
       {
         label: "01",
         title: "Projects",
-        copy: "Startup identities, product-facing covers, launch graphics, and community campaign systems.",
+        copy: "Startup identities, product-facing covers, graphics, and community visuals.",
         cards: [
           {
             title: "Hype Bears",
-            meta: "Project / NFT Launch",
-            description: "Collection identity, launch assets, social systems, and web campaign graphics.",
+            meta: "Startup Project",
+            description: "Collection identity, startup graphics, social systems, and web graphics.",
             href: "hype-bears.html",
             itemId: "hype-bears-hero"
           },
           {
             title: "GM.CO / PXN",
             meta: "Startup Project",
-            description: "Dark launch visuals, project identity, and crypto-native product graphics.",
+            description: "Dark project visuals, identity pieces, and crypto-native product graphics.",
             href: "pxn.html",
             itemId: "gm-co-cover"
           },
@@ -441,17 +441,23 @@
     const lightbox = $("[data-lightbox]");
     if (!lightbox) return;
     activeIndex = index;
-    updateLightbox();
-    lightbox.classList.add("is-open");
+    lightbox.classList.remove("is-open");
+    lightbox.classList.add("is-preparing");
     lightbox.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
-    $("[data-lightbox-close]")?.focus();
+    updateLightbox();
+    requestAnimationFrame(() => {
+      lightbox.classList.add("is-open");
+      lightbox.classList.remove("is-preparing");
+      $("[data-lightbox-close]")?.focus();
+    });
   };
 
   const closeLightbox = () => {
     const lightbox = $("[data-lightbox]");
     if (!lightbox) return;
     lightbox.classList.remove("is-open");
+    lightbox.classList.remove("is-preparing");
     lightbox.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
     resetLightboxZoom();
@@ -557,8 +563,10 @@
     const kind = $("[data-lightbox-kind]");
     const desc = $("[data-lightbox-desc]");
     resetLightboxZoom();
+    media.classList.add("is-switching");
+    media.classList.remove("is-loaded");
     media.innerHTML = `
-      <div class="lightbox-zoom-stage" data-lightbox-stage>
+      <div class="lightbox-zoom-stage" data-lightbox-stage data-orientation="${escaped(item.orientation)}">
         <img data-lightbox-image src="${item.src}" alt="${escaped(item.title)}" width="${item.width}" height="${item.height}" draggable="false">
       </div>
       <div class="lightbox-toolbar" aria-label="Image zoom controls">
@@ -571,7 +579,16 @@
     kind.textContent = `${item.kind} / ${categoryLabel(item.category)}`;
     desc.textContent = item.description;
     setupLightboxZoom(media);
-    requestAnimationFrame(applyLightboxTransform);
+    const image = $("[data-lightbox-image]", media);
+    const revealImage = () => {
+      requestAnimationFrame(() => {
+        applyLightboxTransform();
+        media.classList.remove("is-switching");
+        media.classList.add("is-loaded");
+      });
+    };
+    if (image?.complete) revealImage();
+    else image?.addEventListener("load", revealImage, { once: true });
   };
 
   const moveLightbox = (direction) => {
