@@ -3831,6 +3831,7 @@ button.web-shot {
 }
 
 .cinematic-site .gallery-grid {
+  width: 100%;
   max-width: 1180px;
   margin-top: clamp(28px, 5vw, 58px);
   columns: 3 300px;
@@ -3851,6 +3852,29 @@ button.web-shot {
 .cinematic-site .gallery-grid .project-card:focus-visible {
   border-color: var(--cinema-border-strong);
   background: var(--cinema-panel-strong);
+}
+
+.startup-page .gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+  columns: initial;
+}
+
+.startup-page .gallery-grid .project-card,
+.startup-page .gallery-grid .project-card.tall,
+.startup-page .gallery-grid .project-card.banner,
+.startup-page .gallery-grid .project-card.wide {
+  width: 100%;
+  height: auto;
+  margin: 0;
+  align-self: start;
+  break-inside: auto;
+}
+
+.startup-page .gallery-grid .project-card.banner {
+  grid-column: span 2;
 }
 
 .cinematic-site .future-section {
@@ -4471,6 +4495,11 @@ body.cinematic-site .cinematic-hero [data-reveal] {
     columns: 1;
     column-gap: 0;
     margin-top: 28px;
+  }
+
+  .startup-page .gallery-grid {
+    grid-template-columns: 1fr;
+    gap: 22px;
   }
 
   .cinematic-site .gallery-grid .project-card,
