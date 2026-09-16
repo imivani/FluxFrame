@@ -281,8 +281,10 @@ button {
 
 .nav-line span {
   display: block;
-  width: 0;
+  width: 100%;
   height: 1px;
+  transform: scaleX(0);
+  transform-origin: left;
   background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3));
 }
 
@@ -3026,8 +3028,10 @@ h3 {
   *::after {
     scroll-behavior: auto !important;
     animation-duration: 0.001ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
   }
 
   .reveal {
@@ -3070,6 +3074,55 @@ body.cinematic-site::after {
     linear-gradient(90deg, oklch(100% 0 0 / 0.028) 1px, transparent 1px);
   background-size: calc(100vw / 6) 100%, calc(100vw / 6) 100%;
   mask-image: linear-gradient(180deg, black, transparent 82%);
+}
+
+/* Ambient layer stays behind the content and never intercepts input. */
+.ambient-field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ambient-field::before,
+.ambient-field::after {
+  position: absolute;
+  content: "";
+  pointer-events: none;
+}
+
+.ambient-field::before {
+  inset: 0;
+  background: radial-gradient(circle, rgb(225 228 230 / 0.15) 0.8px, transparent 1px) 0 0 / 28px 28px;
+  mask-image: radial-gradient(ellipse at 78% 28%, black 0%, transparent 68%);
+}
+
+.ambient-field::after {
+  inset: -12%;
+  background: repeating-radial-gradient(ellipse at 100% 30%, transparent 0 34px, rgb(224 228 226 / 0.07) 35px 36px, transparent 37px 66px);
+  mask-image: radial-gradient(ellipse at 100% 48%, black 8%, transparent 70%);
+  transform: translate3d(-14px, 0, 0) rotate(-9deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ambient-field::after {
+    animation: ambientDrift 32s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes ambientDrift {
+  to { transform: translate3d(22px, -24px, 0) rotate(-5deg); }
+}
+
+.motion-paused .ambient-field::after,
+.motion-paused .floating-shot {
+  animation-play-state: paused;
+}
+
+@media (max-width: 760px) {
+  .ambient-field { opacity: 0.65; }
+  .ambient-field::before { background-size: 24px 24px; }
 }
 
 .cinematic-site .site-header {
@@ -3210,10 +3263,10 @@ body.cinematic-site::after {
 
 .eyebrow {
   color: var(--cinema-accent);
-  font-size: 0.78rem;
-  font-weight: 850;
+  font-size: 0.875rem;
+  font-weight: 500;
   letter-spacing: 0;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .cinematic-title {
@@ -3437,15 +3490,15 @@ body.cinematic-site::after {
 }
 
 .story-pin h2 {
-  max-width: 19ch;
-  font-size: clamp(2rem, 3.2vw, 3rem);
-  line-height: 1.1;
+  max-width: 15ch;
+  font-size: clamp(2.65rem, 4.9vw, 4.5rem);
+  line-height: 1.06;
 }
 
 .web-sticky h2 {
   max-width: 18ch;
-  font-size: clamp(2rem, 3.2vw, 3rem);
-  line-height: 1.1;
+  font-size: clamp(2.5rem, 4.5vw, 4rem);
+  line-height: 1.06;
 }
 
 .story-steps {
@@ -3596,11 +3649,11 @@ body.cinematic-site::after {
 }
 
 .pi-feature-wordmark small {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 400;
   line-height: 1.5;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.035em;
+  text-transform: none;
 }
 
 @media (max-width: 700px) {
@@ -3787,9 +3840,9 @@ body.cinematic-site::after {
   width: max-content;
   max-width: 100%;
   color: var(--cinema-accent);
-  font-size: 0.76rem;
-  font-weight: 850;
-  text-transform: uppercase;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: none;
 }
 
 .editorial-copy strong,
@@ -3828,8 +3881,8 @@ body.cinematic-site::after {
 
 .web-editorial {
   display: grid;
-  grid-template-columns: minmax(280px, 0.52fr) minmax(0, 1fr);
-  gap: clamp(30px, 7vw, 100px);
+  grid-template-columns: minmax(300px, 0.78fr) minmax(0, 1fr);
+  gap: clamp(30px, 5vw, 72px);
   padding: clamp(72px, 11vw, 140px) 0;
   border-top: 1px solid var(--cinema-border);
 }
@@ -4306,15 +4359,13 @@ button.web-shot {
 
 .cinematic-site [data-reveal] {
   opacity: 0;
-  filter: blur(8px);
-  transform: translateY(28px);
-  transition: opacity 820ms var(--ease), transform 820ms var(--ease), filter 820ms var(--ease);
+  transform: translateY(22px);
+  transition: opacity 700ms var(--ease), transform 700ms var(--ease);
 }
 
 .cinematic-site [data-reveal].is-visible,
 .cinematic-site .reveal.is-visible {
   opacity: 1;
-  filter: blur(0);
   transform: translateY(0);
 }
 
@@ -4331,8 +4382,8 @@ button.web-shot {
   transition-delay: 220ms;
 }
 
-body.cinematic-site .cinematic-hero [data-reveal] {
-  will-change: opacity, transform, filter;
+.featured-project-grid > [data-reveal]:nth-child(2) {
+  transition-delay: 70ms;
 }
 
 @media (max-width: 1080px) {
@@ -4538,8 +4589,8 @@ body.cinematic-site .cinematic-hero [data-reveal] {
 
   .story-pin h2,
   .web-sticky h2 {
-    font-size: clamp(1.85rem, 7.5vw, 2.5rem);
-    line-height: 1.1;
+    font-size: clamp(2.35rem, 10vw, 3.2rem);
+    line-height: 1.08;
   }
 
   .story-step strong {
@@ -4746,6 +4797,18 @@ body.cinematic-site .cinematic-hero [data-reveal] {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .ambient-field::after {
+    animation: none;
+  }
+
+  .floating-shot,
+  .editorial-card:hover,
+  .editorial-card:focus-visible,
+  .web-shot:hover,
+  .web-shot:focus-visible {
+    transform: none !important;
+  }
+
   .floating-shot,
   .preview-column,
   .archive-strip-track,

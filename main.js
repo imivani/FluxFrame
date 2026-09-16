@@ -1,5 +1,7 @@
 (() => {
   const site = window.FLUXFRAME_SITE;
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
   const items = window.FLUXFRAME_ITEMS || [];
   const categories = [
     ["all", "All"],
@@ -115,6 +117,7 @@
         if (index >= 0) openLightbox(index);
       });
       button.addEventListener("pointermove", (event) => {
+        if (reducedMotion.matches || !finePointer.matches) return;
         const rect = button.getBoundingClientRect();
         button.style.setProperty("--mx", `${((event.clientX - rect.left) / rect.width) * 100}%`);
         button.style.setProperty("--my", `${((event.clientY - rect.top) / rect.height) * 100}%`);
@@ -125,6 +128,7 @@
   const bindPointerGlow = (scope = document) => {
     $$(".home-tile, .home-project-card, .editorial-card, .web-shot, .archive-row", scope).forEach((node) => {
       node.addEventListener("pointermove", (event) => {
+        if (reducedMotion.matches || !finePointer.matches) return;
         const rect = node.getBoundingClientRect();
         node.style.setProperty("--mx", `${((event.clientX - rect.left) / rect.width) * 100}%`);
         node.style.setProperty("--my", `${((event.clientY - rect.top) / rect.height) * 100}%`);
@@ -632,15 +636,11 @@
 
   const setupProgress = () => {
     const bar = $("[data-scroll-progress]");
-    if (!bar) return;
-    const update = () => {
-      const height = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = height <= 0 ? 0 : window.scrollY / height;
-      bar.style.width = `${Math.min(100, Math.max(0, progress * 100))}%`;
-    };
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
+    if (!bar || !("ScrollTimeline" in window)) return;
+    bar.animate({ transform: ["scaleX(0)", "scaleX(1)"] }, {
+      fill: "both",
+      timeline: new ScrollTimeline({ source: document.documentElement, axis: "block" })
+    });
   };
 
   const setupPageMotion = () => {
@@ -651,7 +651,7 @@
       const url = new URL(link.href, window.location.href);
       const isSamePageHash = url.pathname === window.location.pathname && url.hash;
       const isInternal = url.origin === window.location.origin && link.target !== "_blank";
-      if (!isInternal || isSamePageHash || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      if (!isInternal || isSamePageHash || reducedMotion.matches || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       event.preventDefault();
       document.body.classList.add("page-leaving");
       window.setTimeout(() => {
@@ -706,9 +706,13 @@
   };
 
   const setupCinematicMotion = () => {
+    const pauseWhenHidden = () => document.body.classList.toggle("motion-paused", document.hidden);
+    pauseWhenHidden();
+    document.addEventListener("visibilitychange", pauseWhenHidden);
     $$("[data-parallax-stage]").forEach((stage) => {
       const layers = $$("[data-depth]", stage);
       stage.addEventListener("pointermove", (event) => {
+        if (reducedMotion.matches || !finePointer.matches) return;
         const rect = stage.getBoundingClientRect();
         const x = (event.clientX - rect.left) / rect.width - 0.5;
         const y = (event.clientY - rect.top) / rect.height - 0.5;
