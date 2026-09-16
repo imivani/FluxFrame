@@ -157,6 +157,17 @@ button {
   transform: translateY(0);
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 .site-header {
   position: sticky;
   top: 0;
@@ -3153,6 +3164,7 @@ body.cinematic-site::after {
 }
 
 .cinematic-hero,
+.featured-projects,
 .scroll-story,
 .selected-work,
 .web-editorial,
@@ -3205,10 +3217,10 @@ body.cinematic-site::after {
 }
 
 .cinematic-title {
-  max-width: 12ch;
+  max-width: 19ch;
   color: var(--cinema-text);
-  font-size: clamp(3.8rem, 6.6vw, 6.35rem);
-  line-height: 0.9;
+  font-size: clamp(2.75rem, 4.8vw, 4.5rem);
+  line-height: 1.1;
   font-weight: 850;
   letter-spacing: 0;
   text-shadow: 0 30px 100px oklch(100% 0 0 / 0.1);
@@ -3408,30 +3420,32 @@ body.cinematic-site::after {
 }
 
 .story-pin h2,
+.featured-projects h2,
 .selected-work h2,
 .web-sticky h2,
 .archive-transition h2,
 .featured-archive h2,
 .archive-list-section h2,
 .footer-cta h2 {
-  max-width: 11ch;
+  max-width: 22ch;
   color: var(--cinema-text);
-  font-size: clamp(3rem, 7vw, 6.5rem);
-  line-height: 0.95;
+  font-size: clamp(2.1rem, 4vw, 3.5rem);
+  line-height: 1.1;
+  text-wrap: balance;
   font-weight: 850;
   letter-spacing: 0;
 }
 
 .story-pin h2 {
-  max-width: 13ch;
-  font-size: clamp(2.35rem, 4.7vw, 4.65rem);
-  line-height: 0.98;
+  max-width: 19ch;
+  font-size: clamp(2rem, 3.2vw, 3rem);
+  line-height: 1.1;
 }
 
 .web-sticky h2 {
-  max-width: 10.5ch;
-  font-size: clamp(2.35rem, 4.6vw, 4.75rem);
-  line-height: 0.98;
+  max-width: 18ch;
+  font-size: clamp(2rem, 3.2vw, 3rem);
+  line-height: 1.1;
 }
 
 .story-steps {
@@ -3457,8 +3471,8 @@ body.cinematic-site::after {
 .story-step strong {
   max-width: 16ch;
   color: var(--cinema-text);
-  font-size: clamp(1.8rem, 3.6vw, 3.35rem);
-  line-height: 1;
+  font-size: clamp(1.5rem, 2.4vw, 2.2rem);
+  line-height: 1.15;
   font-weight: 850;
 }
 
@@ -3469,6 +3483,7 @@ body.cinematic-site::after {
 }
 
 .selected-work,
+.featured-projects,
 .featured-archive,
 .archive-list-section {
   padding: clamp(72px, 11vw, 140px) 0;
@@ -3511,6 +3526,48 @@ body.cinematic-site::after {
   gap: 16px;
   align-items: stretch;
   margin-top: clamp(28px, 5vw, 60px);
+}
+
+.featured-projects {
+  scroll-margin-top: 100px;
+}
+
+.featured-project-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 32px;
+}
+
+.featured-project-grid .editorial-card {
+  grid-template-rows: auto 1fr;
+}
+
+.featured-project-grid .editorial-media {
+  aspect-ratio: 16 / 10;
+  min-height: 0;
+}
+
+.featured-project-grid .editorial-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.featured-project-grid .editorial-copy {
+  align-content: start;
+}
+
+.featured-project-grid .editorial-copy h3 {
+  margin: 0;
+}
+
+@media (max-width: 700px) {
+  .featured-project-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
 }
 
 .selected-work .project-grid {
@@ -3695,10 +3752,11 @@ body.cinematic-site::after {
   text-transform: uppercase;
 }
 
-.editorial-copy strong {
+.editorial-copy strong,
+.editorial-copy h3 {
   color: var(--cinema-text);
-  font-size: clamp(2rem, 3.5vw, 3.8rem);
-  line-height: 0.94;
+  font-size: clamp(1.5rem, 2.4vw, 2.2rem);
+  line-height: 1.1;
   font-weight: 850;
 }
 
@@ -3751,7 +3809,7 @@ body.cinematic-site::after {
 }
 
 .web-sticky h2 {
-  max-width: 10.5ch;
+  max-width: 18ch;
 }
 
 .web-shot-list {
@@ -3893,7 +3951,7 @@ button.web-shot {
 }
 
 .archive-transition h2 {
-  max-width: 13ch;
+  max-width: 22ch;
 }
 
 .archive-orbit {
@@ -3974,7 +4032,7 @@ button.web-shot {
 }
 
 .footer-cta h2 {
-  max-width: 13ch;
+  max-width: 22ch;
 }
 
 .footer-cta p {
@@ -4358,6 +4416,7 @@ body.cinematic-site .cinematic-hero [data-reveal] {
   }
 
   .cinematic-hero,
+  .featured-projects,
   .scroll-story,
   .selected-work,
   .web-editorial,
@@ -4381,7 +4440,7 @@ body.cinematic-site .cinematic-hero [data-reveal] {
 
   .cinematic-title {
     max-width: 100%;
-    font-size: clamp(3.1rem, 17vw, 5rem);
+    font-size: clamp(2.45rem, 10vw, 3.4rem);
   }
 
   .hero-copy-block {
@@ -4426,6 +4485,7 @@ body.cinematic-site .cinematic-hero [data-reveal] {
   }
 
   .story-pin h2,
+  .featured-projects h2,
   .selected-work h2,
   .web-sticky h2,
   .archive-transition h2,
@@ -4433,18 +4493,18 @@ body.cinematic-site .cinematic-hero [data-reveal] {
   .archive-list-section h2,
   .footer-cta h2 {
     max-width: 100%;
-    font-size: clamp(2.5rem, 13vw, 4.1rem);
+    font-size: clamp(1.9rem, 8vw, 2.65rem);
   }
 
   .story-pin h2,
   .web-sticky h2 {
-    font-size: clamp(2.1rem, 10.5vw, 3.35rem);
-    line-height: 1;
+    font-size: clamp(1.85rem, 7.5vw, 2.5rem);
+    line-height: 1.1;
   }
 
   .story-step strong {
-    font-size: clamp(1.55rem, 7vw, 2.6rem);
-    line-height: 1.04;
+    font-size: clamp(1.4rem, 6vw, 1.9rem);
+    line-height: 1.15;
   }
 
   .story-step {
