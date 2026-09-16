@@ -40,3 +40,27 @@ blur, opacity and vertical-movement keyframes. Travel and timing are reduced
 for this hero. These effects share the React Bits license above.
 
 Source: https://github.com/DavidHDev/react-bits/blob/main/src/content/TextAnimations/BlurText/BlurText.jsx
+
+## Website showcase
+
+`hero-carousel.js` adapts the official React Bits Depth Carousel to the existing
+static page, retaining its depth-rail positioning, brightness, blur, tilt,
+GSAP `power3.out` interpolation, drag projection and circular indexing.
+Autoplay uses a 5,000 ms start-to-start interval. Responsive sizing and the
+bottom perspective origin align the images with the hero divider. Image top
+corners have an 18 px radius. The three designs repeat once along the rail
+for a continuous, filled depth effect; controls identify the three unique designs.
+The 480 px-wide previews rise from the divider on first paint, followed by a
+compact control bar fading in. Native CSS handles this one-time entrance;
+reduced-motion preferences skip it, and hidden/offscreen pages pause it.
+
+Source: https://github.com/DavidHDev/react-bits/tree/main/src/content/Components/DepthCarousel
+Reference: https://reactbits.dev/components/depth-carousel
+
+`gsap.js` bundles the official `gsap@3.15.0` npm package using
+`esbuild@0.25.12` (`--bundle --minify --format=esm --target=es2020`). Its
+copyright and license notices remain in the bundle. GSAP uses GreenSock's
+standard no-charge license: https://gsap.com/standard-license.
+
+The three `hero-*.webp` images are compressed previews of the existing complete
+portfolio images; the full-resolution originals remain in the gallery.

@@ -7,11 +7,13 @@
   let syncArtwork = () => {};
   let syncVideos = () => {};
   let syncPills = () => {};
+  let syncCarousel = () => {};
 
   const syncMotion = () => {
     syncArtwork();
     syncVideos();
     syncPills();
+    syncCarousel();
   };
   reduced.addEventListener("change", syncMotion);
   document.addEventListener("visibilitychange", syncMotion);
@@ -92,6 +94,11 @@
   ]).then(([{ ShaderMount }, { initSpecularPills }]) => {
     syncPills = initSpecularPills(ShaderMount, reduced);
     syncPills();
+  }).catch(() => {});
+
+  import("./hero-carousel.js").then(({ initHeroCarousel }) => {
+    syncCarousel = initHeroCarousel(reduced);
+    syncCarousel();
   }).catch(() => {});
 
   // Highlight the chapter that crosses the reading zone; native page scrolling
