@@ -5,14 +5,12 @@
   if (!hero) return;
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
   let syncArtwork = () => {};
-  let syncVideos = () => {};
   let syncPills = () => {};
   let syncCarousel = () => {};
   let carouselActive = false;
 
   const syncMotion = () => {
     syncArtwork();
-    syncVideos();
     syncPills();
     syncCarousel();
   };
@@ -131,31 +129,5 @@
     for (const step of steps) chapters.observe(step);
   }
 
-  const videoSection = document.querySelector(".story-art-motion");
-  const videos = Array.from(document.querySelectorAll("[data-story-video]"));
-  const videoToggle = document.querySelector("[data-video-toggle]");
-  let videosVisible = false;
-  let videosPaused = false;
-  syncVideos = () => {
-    const stopped = reduced.matches || videosPaused;
-    videoToggle.hidden = reduced.matches;
-    videoToggle.textContent = stopped ? "Play previews" : "Pause previews";
-    videoToggle.setAttribute("aria-pressed", String(stopped));
-    for (const video of videos) {
-      if (videosVisible && !document.hidden && !stopped) video.play().catch(() => {});
-      else video.pause();
-    }
-  };
-  videoToggle.addEventListener("click", () => {
-    videosPaused = !videosPaused;
-    syncMotion();
-  });
-  if ("IntersectionObserver" in window) {
-    const videoObserver = new IntersectionObserver(([entry]) => {
-      videosVisible = entry.isIntersecting;
-      syncVideos();
-    }, { threshold: 0.15 });
-    videoObserver.observe(videoSection);
-  }
   syncMotion();
 })();
