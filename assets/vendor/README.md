@@ -44,8 +44,11 @@ Source: https://github.com/DavidHDev/react-bits/blob/main/src/content/TextAnimat
 ## Website showcase
 
 `hero-carousel.js` adapts the official React Bits Depth Carousel to the existing
-static page, retaining its depth-rail positioning, brightness, blur, tilt,
-GSAP `power3.out` interpolation, drag projection and circular indexing.
+static page, retaining its depth-rail positioning, tilt, easing curve,
+drag projection and circular indexing. Native Web Animations now animate
+precomputed transform/opacity keyframes; no JS animation loop rewrites every
+card on every frame. A translucent dark layer replaces animated brightness,
+blur and multiply blending. The controls no longer filter content behind them.
 Autoplay uses a 5,000 ms start-to-start interval. Responsive sizing and the
 bottom perspective origin align the images with the hero divider. Image top
 corners have an 18 px radius. The three designs repeat once along the rail
@@ -57,10 +60,12 @@ reduced-motion preferences skip it, and hidden/offscreen pages pause it.
 Source: https://github.com/DavidHDev/react-bits/tree/main/src/content/Components/DepthCarousel
 Reference: https://reactbits.dev/components/depth-carousel
 
-`gsap.js` bundles the official `gsap@3.15.0` npm package using
-`esbuild@0.25.12` (`--bundle --minify --format=esm --target=es2020`). Its
-copyright and license notices remain in the bundle. GSAP uses GreenSock's
-standard no-charge license: https://gsap.com/standard-license.
+Carousel transitions no longer load the GSAP bundle. Pointer movement is
+coalesced to one update per animation frame, and interrupted transitions resume
+from their current position. While the carousel is moving, background shader
+clocks pause and then resume. On narrow screens or touch devices, Silk is capped
+at 360,000 pixels and the faint page mesh at 120,000 pixels.
 
 The three `hero-*.webp` images are compressed previews of the existing complete
-portfolio images; the full-resolution originals remain in the gallery.
+portfolio images. Touch/narrow screens use 640 px-wide versions, reducing
+decoded image memory by about 59%; full-resolution originals remain in the gallery.

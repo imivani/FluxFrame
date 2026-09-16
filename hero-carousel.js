@@ -1,8 +1,6 @@
-import { gsap } from "./assets/vendor/gsap.js";
-
-// React Bits Depth Carousel: the original depth-rail layout, GSAP tween and
-// pointer projection, adapted to this static portfolio. See vendor/README.md.
-export function initHeroCarousel(reduced) {
+// React Bits depth-rail geometry, with compositor-driven transform/opacity
+// transitions. No per-frame filters, stacking changes or animation JS loop.
+export function initHeroCarousel(reduced, onActivity = () => {}) {
   const root = document.querySelector("[data-hero-carousel]");
   if (!root) return () => {};
   const viewport = root.querySelector("[data-carousel-viewport]");
@@ -15,12 +13,16 @@ export function initHeroCarousel(reduced) {
   const viewer = document.querySelector("[data-lightbox]");
   const names = ["iPredict", "CrazyRDP", "rdp.sh"];
   const count = cards.length;
-  const cfg = { cardWidth: 480, depth: 220, spread: 90, tilt: 22, visibleCards: 4, falloff: 0.2, blur: 6, duration: 0.7 };
+  const cfg = { cardWidth: 480, depth: 220, spread: 90, tilt: 22, visibleCards: 4, falloff: 0.2, duration: 700 };
   const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+  const ease = t => 1 - (1 - t) ** 4;
   let position = 0;
   let focused = 0;
   let scale = 1;
-  let tween = null;
+  let cardHeight = 560;
+  let transition = null;
+  let dragFrame = 0;
+  let active = false;
   let drag = null;
   let autoTimer = 0;
   let hovered = false;
@@ -30,28 +32,53 @@ export function initHeroCarousel(reduced) {
   let suppressClick = false;
   let viewerOrigin = null;
 
+  const pose = { transform: "", opacity: 0, tint: 0, depth: 0 };
+  const computePose = (i, pos) => {
+    let d = ((i - pos) % count + count) % count;
+    if (d > count / 2) d -= count;
+    const back = Math.max(0, d);
+    pose.depth = d;
+    pose.opacity = Math.abs(d) > cfg.visibleCards + 0.5 ? 0 : d < 0 ? Math.max(0, 1 + d) : 1;
+    pose.transform = `translate3d(-240px,${-cardHeight / 2}px,0) scale(${scale}) translate3d(${(cfg.spread * d).toFixed(2)}px,0,${(-cfg.depth * d).toFixed(2)}px) rotateY(${(cfg.tilt * clamp(d, 0, 1)).toFixed(3)}deg)`;
+    // A simple translucent layer replaces brightness + blur + multiply blend.
+    pose.tint = 1 - Math.max(0.15, 1 - back * cfg.falloff) * (1 - clamp(back * cfg.falloff * 1.25, 0, 0.86));
+  };
+  const setActivity = value => {
+    if (active === value) return;
+    active = value;
+    root.dataset.moving = String(value);
+    onActivity(value);
+  };
+  const updateInteraction = pos => {
+    for (let i = 0; i < count; i++) {
+      computePose(i, pos);
+      const style = cards[i].style;
+      const pointer = pose.opacity > 0.05 ? "auto" : "none";
+      if (style.pointerEvents !== pointer) style.pointerEvents = pointer;
+      // Stack order only changes at selection boundaries, never every frame.
+      let rank = (i - focused + count) % count;
+      if (rank > count / 2) rank -= count;
+      const order = String(2000 - rank * 20);
+      if (style.zIndex !== order) style.zIndex = order;
+    }
+  };
   const layout = pos => {
     for (let i = 0; i < count; i++) {
-      let d = i - pos;
-      d = ((d % count) + count) % count;
-      if (d > count / 2) d -= count;
-      const back = Math.max(0, d);
-      const shown = Math.abs(d) <= cfg.visibleCards + 0.5;
-      const tz = -cfg.depth * d;
-      const tx = cfg.spread * d;
-      const ry = cfg.tilt * clamp(d, 0, 1);
-      let opacity = d < 0 ? Math.max(0, 1 + d) : 1;
-      if (!shown) opacity = 0;
-      const brightness = Math.max(0.15, 1 - back * cfg.falloff);
-      const blurPx = Math.min(cfg.blur, back / cfg.visibleCards * cfg.blur);
-      const style = cards[i].style;
-      style.transform = `translate(-50%, -50%) scale(${scale}) translateX(${tx.toFixed(2)}px) translateZ(${tz.toFixed(2)}px) rotateY(${ry.toFixed(3)}deg)`;
-      style.opacity = opacity.toFixed(3);
-      style.filter = `brightness(${brightness.toFixed(3)}) blur(${blurPx.toFixed(2)}px)`;
-      style.zIndex = String(Math.round(2000 - d * 20));
-      style.pointerEvents = shown && opacity > 0.05 ? "auto" : "none";
-      overlays[i].style.opacity = clamp(back * cfg.falloff * 1.25, 0, 0.86).toFixed(3);
+      computePose(i, pos);
+      cards[i].style.transform = pose.transform;
+      cards[i].style.opacity = String(pose.opacity);
+      overlays[i].style.opacity = String(pose.tint);
     }
+    updateInteraction(pos);
+  };
+  const stopTransition = () => {
+    if (!transition) return;
+    const current = transition;
+    const t = clamp(Number(current.animations[0].currentTime ?? 0) / cfg.duration, 0, 1);
+    position = current.start + (current.target - current.start) * ease(t);
+    transition = null;
+    layout(position);
+    for (const animation of current.animations) animation.cancel();
   };
   const notify = (index, manual) => {
     root.dataset.activeSlide = String(index % names.length);
@@ -69,26 +96,50 @@ export function initHeroCarousel(reduced) {
   };
   const setFocus = (rawIndex, animate = true, manual = false) => {
     if (disposed) return;
+    stopTransition();
     const index = ((rawIndex % count) + count) % count;
     let delta = index - position;
     delta = ((delta % count) + count) % count;
     if (delta > count / 2) delta -= count;
-    tween?.kill();
     focused = index;
     notify(index, manual);
     const target = position + delta;
-    if (!animate || reduced.matches) {
+    if (!animate || reduced.matches || Math.abs(delta) < 0.0001) {
       position = index;
       layout(position);
+      setActivity(false);
       return;
     }
-    const proxy = { p: position };
-    tween = gsap.to(proxy, {
-      p: target, duration: cfg.duration, ease: "power3.out",
-      onUpdate() { position = proxy.p; layout(position); },
-      onComplete() { position = ((position % count) + count) % count; layout(position); },
-    });
-    if (document.hidden || !visible) tween.pause();
+    setActivity(true);
+    const animations = [];
+    const start = position;
+    // Sample the curved rail once per interaction. The browser interpolates
+    // these keyframes independently of the main JS thread, including on iOS.
+    for (let i = 0; i < count; i++) {
+      const frames = [], tintFrames = [];
+      let shown = false;
+      for (let step = 0; step <= 42; step++) {
+        computePose(i, start + delta * ease(step / 42));
+        frames.push({ transform: pose.transform, opacity: pose.opacity });
+        tintFrames.push({ opacity: pose.tint });
+        shown ||= pose.opacity > 0;
+      }
+      if (!shown) continue;
+      animations.push(cards[i].animate(frames, { duration: cfg.duration, fill: "both" }));
+      animations.push(overlays[i].animate(tintFrames, { duration: cfg.duration, fill: "both" }));
+    }
+    const current = { animations, start, target };
+    transition = current;
+    updateInteraction(target);
+    animations[0].onfinish = () => {
+      if (transition !== current) return;
+      position = index;
+      transition = null;
+      layout(position);
+      for (const animation of animations) animation.cancel();
+      setActivity(false);
+    };
+    if (document.hidden || !visible) for (const animation of animations) animation.pause();
   };
   const viewerOpen = () => viewer?.getAttribute("aria-hidden") === "false";
   const stopAuto = () => { clearInterval(autoTimer); autoTimer = 0; };
@@ -99,9 +150,12 @@ export function initHeroCarousel(reduced) {
     toggle.setAttribute("aria-label", userPaused ? "Play slideshow" : "Pause slideshow");
     const suspended = document.hidden || !visible || viewerOpen();
     root.dataset.introMotion = suspended ? "paused" : "running";
-    if (reduced.matches) { tween?.kill(); position = focused; layout(position); }
-    else if (suspended) tween?.pause();
-    else tween?.resume();
+    if (reduced.matches) { stopTransition(); position = focused; layout(position); }
+    else if (transition) for (const animation of transition.animations) {
+      if (suspended) animation.pause();
+      else if (animation.playState === "paused") animation.play();
+    }
+    setActivity(!reduced.matches && !suspended && !!(transition || drag));
     const focusHeld = root.contains(document.activeElement) && document.activeElement !== toggle;
     const run = !reduced.matches && !suspended && !hovered && !focusHeld && !userPaused && !drag;
     root.dataset.rotation = run ? "running" : "paused";
@@ -140,7 +194,7 @@ export function initHeroCarousel(reduced) {
   });
   viewport.addEventListener("pointerdown", event => {
     if (event.button !== 0 || event.target.closest(".depth-showcase-arrow")) return;
-    tween?.kill();
+    stopTransition();
     suppressClick = false;
     drag = { x: event.clientX, y: event.clientY, startPos: position, lastX: event.clientX, lastT: performance.now(), v: 0, moved: false, id: event.pointerId };
     sync();
@@ -149,7 +203,7 @@ export function initHeroCarousel(reduced) {
     if (!drag) return;
     const dx = event.clientX - drag.x;
     const dy = event.clientY - drag.y;
-    if (!drag.moved && Math.abs(dy) > 8 && Math.abs(dy) > Math.abs(dx)) { drag = null; sync(); return; }
+    if (!drag.moved && Math.abs(dy) > 8 && Math.abs(dy) > Math.abs(dx)) { drag = null; setFocus(focused); sync(); return; }
     if (!drag.moved && Math.abs(dx) > 4) { drag.moved = true; viewport.setPointerCapture(drag.id); }
     if (!drag.moved) return;
     const now = performance.now();
@@ -157,21 +211,24 @@ export function initHeroCarousel(reduced) {
     drag.lastX = event.clientX;
     drag.lastT = now;
     position = drag.startPos - dx / Math.max(cfg.cardWidth * 0.55 * scale, 40);
-    layout(position);
+    if (!dragFrame) dragFrame = requestAnimationFrame(renderDrag);
   });
+  const renderDrag = () => { dragFrame = 0; layout(position); };
   const endPointer = () => {
     if (!drag) return;
     const gesture = drag;
     drag = null;
+    cancelAnimationFrame(dragFrame);
+    dragFrame = 0;
     if (gesture.moved) {
       suppressClick = true;
       const projected = position - gesture.v * 180 / Math.max(cfg.cardWidth * 0.55 * scale, 40);
       setFocus(Math.round(projected), true, true);
-    }
+    } else setFocus(focused);
     sync();
   };
-  viewport.addEventListener("pointerup", endPointer);
-  viewport.addEventListener("pointercancel", endPointer);
+  window.addEventListener("pointerup", endPointer);
+  window.addEventListener("pointercancel", endPointer);
   viewport.addEventListener("click", event => {
     const card = event.target.closest("[data-slide]");
     if (suppressClick) { event.preventDefault(); event.stopImmediatePropagation(); suppressClick = false; return; }
@@ -183,9 +240,13 @@ export function initHeroCarousel(reduced) {
   const resize = new ResizeObserver(([entry]) => {
     // Keep enough space for the receding image edges without shrinking the
     // website into a thumbnail on phones; the depth formula stays unchanged.
+    const wasTransitioning = !!transition;
+    stopTransition();
     scale = clamp(entry.contentRect.width / (cfg.cardWidth + cfg.spread), 0.4, 1);
-    for (const card of cards) card.style.height = `${entry.contentRect.height / scale}px`;
+    cardHeight = entry.contentRect.height / scale;
+    for (const card of cards) card.style.height = `${cardHeight}px`;
     layout(position);
+    if (wasTransitioning) setFocus(focused);
   });
   resize.observe(viewport);
   const visibility = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; sync(); }, { threshold: 0.15 });
@@ -198,8 +259,12 @@ export function initHeroCarousel(reduced) {
   window.addEventListener("pageshow", sync);
   window.addEventListener("pagehide", event => {
     stopAuto();
-    tween?.pause();
-    if (!event.persisted) { disposed = true; tween?.kill(); resize.disconnect(); visibility.disconnect(); viewerObserver.disconnect(); }
+    cancelAnimationFrame(dragFrame);
+    dragFrame = 0;
+    drag = null;
+    if (transition) for (const animation of transition.animations) animation.pause();
+    setActivity(false);
+    if (!event.persisted) { disposed = true; stopTransition(); resize.disconnect(); visibility.disconnect(); viewerObserver.disconnect(); }
   });
   notify(0, false);
   layout(0);

@@ -8,6 +8,7 @@
   let syncVideos = () => {};
   let syncPills = () => {};
   let syncCarousel = () => {};
+  let carouselActive = false;
 
   const syncMotion = () => {
     syncArtwork();
@@ -45,17 +46,23 @@
     const options = { alpha: false, antialias: false, powerPreference: "low-power" };
     const container = document.querySelector("[data-silk-background]");
     const ambient = document.querySelector("[data-page-mesh]");
+    const compact = window.matchMedia("(max-width: 760px), (pointer: coarse)");
     const mount = new ShaderMount(container, silkFragmentShader, {
       uColor: [92 / 255, 11 / 255, 52 / 255],
       uSpeed: 2.3, uScale: 0.8, uRotation: 0, uNoiseIntensity: 1.5, uLightMode: 0,
-    }, options, 0, 0, 1, 1600000);
+    }, options, 0, 0, 1, compact.matches ? 360000 : 1600000);
     const pageMount = new ShaderMount(ambient, meshGradientFragmentShader,
-      { ...uniforms, u_scale: 0.85, u_grainOverlay: 0 }, options, 0, 12500, 1, 360000);
+      { ...uniforms, u_scale: 0.85, u_grainOverlay: 0 }, options, 0, 12500, 1, compact.matches ? 120000 : 360000);
+    const resizeQuality = () => {
+      mount.setMaxPixelCount(compact.matches ? 360000 : 1600000);
+      pageMount.setMaxPixelCount(compact.matches ? 120000 : 360000);
+    };
+    compact.addEventListener("change", resizeQuality);
     let visible = true;
     let disposed = false;
     syncArtwork = () => {
       if (disposed) return;
-      const animate = !document.hidden && !reduced.matches;
+      const animate = !document.hidden && !reduced.matches && !carouselActive;
       const run = visible && animate;
       // Silk's useFrame advances its time at 0.1 * delta; preserve that timing.
       mount.setSpeed(run ? 0.1 : 0);
@@ -79,6 +86,7 @@
       if (!event.persisted) {
         disposed = true;
         visibility.disconnect();
+        compact.removeEventListener("change", resizeQuality);
         mount.dispose();
         pageMount.dispose();
       }
@@ -97,7 +105,10 @@
   }).catch(() => {});
 
   import("./hero-carousel.js").then(({ initHeroCarousel }) => {
-    syncCarousel = initHeroCarousel(reduced);
+    syncCarousel = initHeroCarousel(reduced, active => {
+      carouselActive = active;
+      syncArtwork();
+    });
     syncCarousel();
   }).catch(() => {});
 
