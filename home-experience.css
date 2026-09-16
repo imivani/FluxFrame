@@ -188,23 +188,65 @@ body.home-experience::after,
 .home-experience .story-steps { gap: 100px; padding-top: 0; }
 .home-experience .story-step { min-height: auto; padding: 0; gap: 28px; border: 0; scroll-margin-top: 112px; }
 .story-art {
+  --reel-duration: 14s;
   position: relative;
   display: block;
+  aspect-ratio: 1;
   overflow: hidden;
   border: 1px solid #ffffff14;
   border-radius: 18px;
   isolation: isolate;
 }
-/* Let each composition size its frame, so the complete artwork stays in view. */
-.story-art img { display: block; width: 100%; max-width: 100%; height: auto; object-fit: contain; border-radius: 6px; }
-.story-art-web { background: #121722; }
-.story-web-composition { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: clamp(12px, 2vw, 24px); padding: clamp(16px, 2.4vw, 32px); }
-.story-web-composition img { box-shadow: 0 8px 24px #00000050; }
-.story-web-composition img:last-child { margin-top: 24%; }
+/* The frame is a viewport onto the artwork; only its position changes. */
+.story-art img { display: block; width: 100%; max-width: none; height: auto; }
+.story-art-web { --reel-duration: 44s; background: #101628; }
 .story-art-graphics { background: #14141b; }
-.story-graphics-composition { display: grid; justify-items: center; gap: clamp(16px, 2vw, 24px); padding: clamp(16px, 2.4vw, 32px); }
-.story-graphics-composition img:first-child { width: 76%; }
-.story-art-startups { padding: clamp(16px, 2.4vw, 32px); background: #141219; }
+.story-art-startups { background: #141219; }
+.story-slide { position: absolute; inset: 0; overflow: hidden; }
+.story-slide:nth-child(2) { transform: translateX(100%); }
+.story-banner-pair { display: grid; grid-template-rows: 1fr 1fr; }
+.story-banner-pair img { height: 100%; object-fit: cover; }
+.story-art .story-cover-pan { width: auto; height: 100%; transform: translateX(var(--pan-center, 0px)); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .story-slide { animation: storySlideFirst var(--reel-duration) linear infinite paused; }
+  .story-slide:nth-child(2) { animation-name: storySlideSecond; }
+  .story-page-pan { animation: storyPagePan var(--reel-duration) linear infinite paused; }
+  .story-slide:nth-child(2) .story-page-pan { animation-delay: calc(var(--reel-duration) / -2); }
+  .story-cover-pan { animation: storyCoverPan 12s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate paused; }
+  .story-art[data-running="true"] .story-slide,
+  .story-art[data-running="true"] .story-page-pan,
+  .story-art[data-running="true"] .story-cover-pan { animation-play-state: running; }
+  .story-art:focus-visible .story-slide,
+  .story-art:focus-visible .story-page-pan,
+  .story-art:focus-visible .story-cover-pan { animation-play-state: paused; }
+}
+@media (hover: hover) {
+  .story-art:hover .story-slide,
+  .story-art:hover .story-page-pan,
+  .story-art:hover .story-cover-pan { animation-play-state: paused; }
+}
+@keyframes storySlideFirst {
+  0%, 44% { transform: translateX(0); }
+  44%, 94% { animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+  50%, 94% { transform: translateX(-100%); }
+  100% { transform: translateX(0); }
+}
+@keyframes storySlideSecond {
+  0%, 44% { transform: translateX(100%); }
+  44%, 94% { animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+  50%, 94% { transform: translateX(0); }
+  100% { transform: translateX(100%); }
+}
+@keyframes storyPagePan {
+  0%, 5% { transform: translateY(0); }
+  40%, 50% { transform: translateY(var(--pan-end, 0px)); }
+  50.01%, 100% { transform: translateY(0); }
+}
+@keyframes storyCoverPan {
+  from { transform: translateX(0); }
+  to { transform: translateX(var(--pan-end, 0px)); }
+}
 .story-caption { display: grid; gap: 12px; }
 .story-caption h3 { font-size: clamp(1.5rem, 2.15vw, 2rem); line-height: 1.15; letter-spacing: -0.015em; color: #f2f3f5; }
 .home-experience .story-caption p { max-width: 38ch; color: #b1b2bb; }

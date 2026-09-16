@@ -7,12 +7,14 @@
   let syncArtwork = () => {};
   let syncPills = () => {};
   let syncCarousel = () => {};
+  let syncPreviews = () => {};
   let carouselActive = false;
 
   const syncMotion = () => {
     syncArtwork();
     syncPills();
     syncCarousel();
+    syncPreviews();
   };
   reduced.addEventListener("change", syncMotion);
   document.addEventListener("visibilitychange", syncMotion);
@@ -129,5 +131,52 @@
     for (const step of steps) chapters.observe(step);
   }
 
+  // Animate the artwork inside fixed frames. Layout is measured only on load
+  // and resize; CSS transforms handle the movement without a per-frame loop.
+  const previews = Array.from(document.querySelectorAll("[data-story-preview]"));
+  const visiblePreviews = new Set();
+  syncPreviews = () => {
+    for (const preview of previews) {
+      const loaded = Array.from(preview.querySelectorAll("img")).every(img => img.complete && img.naturalWidth);
+      preview.dataset.running = String(loaded && visiblePreviews.has(preview) && !document.hidden && !reduced.matches);
+    }
+  };
+  const sizePreview = (preview) => {
+    const bounds = preview.getBoundingClientRect();
+    const style = getComputedStyle(preview);
+    const width = bounds.width - parseFloat(style.borderLeftWidth) - parseFloat(style.borderRightWidth);
+    const height = bounds.height - parseFloat(style.borderTopWidth) - parseFloat(style.borderBottomWidth);
+    const measurements = Array.from(preview.querySelectorAll(".story-page-pan, .story-cover-pan"), img => {
+      const image = img.getBoundingClientRect();
+      const distance = img.classList.contains("story-page-pan") ? height - image.height : width - image.width;
+      return { img, end: Number.isFinite(distance) ? Math.min(0, distance) : 0 };
+    });
+    for (const { img, end } of measurements) {
+      img.style.setProperty("--pan-end", `${end}px`);
+      img.style.setProperty("--pan-center", `${end / 2}px`);
+    }
+  };
+  const previewSize = new ResizeObserver(entries => {
+    for (const entry of entries) sizePreview(entry.target);
+  });
+  const previewVisibility = new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) visiblePreviews.add(entry.target);
+      else visiblePreviews.delete(entry.target);
+    }
+    syncPreviews();
+  }, { threshold: 0.15 });
+  for (const preview of previews) {
+    previewSize.observe(preview);
+    previewVisibility.observe(preview);
+    for (const img of preview.querySelectorAll("img")) {
+      img.addEventListener("load", () => { sizePreview(preview); syncPreviews(); });
+    }
+    sizePreview(preview);
+  }
+  window.addEventListener("pagehide", event => {
+    if (!event.persisted) { previewSize.disconnect(); previewVisibility.disconnect(); }
+  });
+  window.addEventListener("pageshow", syncPreviews);
   syncMotion();
 })();
