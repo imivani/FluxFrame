@@ -3563,6 +3563,46 @@ body.cinematic-site::after {
   margin: 0;
 }
 
+.featured-pi .editorial-media {
+  background: #111714;
+}
+
+.featured-project-grid .featured-pi .editorial-media img {
+  opacity: 0.55;
+  filter: saturate(0.65) brightness(0.65);
+}
+
+.featured-pi .pi-feature-wordmark {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  color: #f4f3ee;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  text-align: center;
+  pointer-events: none;
+}
+
+.pi-feature-wordmark > span {
+  font-size: clamp(1.8rem, 3.2vw, 2.8rem);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+}
+
+.pi-feature-wordmark small {
+  font-size: 0.65rem;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
 @media (max-width: 700px) {
   .featured-project-grid {
     grid-template-columns: 1fr;
