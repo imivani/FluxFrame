@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="home-experience.css">
   </head>
   <body data-page="home" class="cinematic-site home-experience">
-    <div class="ambient-field" aria-hidden="true"></div>
+    <div class="page-mesh" aria-hidden="true"><div data-page-mesh></div></div>
     <a class="skip-link" href="#selected-work">Skip to projects</a>
 
     <header class="site-header" data-header>
@@ -36,46 +36,18 @@
     </header>
 
     <main>
-      <section class="cinematic-hero" aria-labelledby="home-title">
-        <div class="hero-mesh" aria-hidden="true"><div data-mesh-gradient></div></div>
+      <section class="cinematic-hero silk-hero" aria-labelledby="home-title">
+        <div class="hero-silk" aria-hidden="true"><div data-silk-background></div></div>
         <div class="hero-copy-block">
-          <div class="hero-brand cinematic-reveal" data-reveal>
-            <img src="assets/portfolio/26-fluxframe-mark.png" alt="">
-            <span>FluxFrame Web + Graphics</span>
-          </div>
-          <h1 id="home-title" class="cinematic-title">
-            <span data-reveal>Fast websites,</span>
-            <span data-reveal>sharper graphics.</span>
+          <h1 id="home-title" class="cinematic-title silk-title" aria-label="Fast websites, sharper graphics.">
+            <span class="hero-title-line" aria-hidden="true"><span class="hero-word" style="--word-index: 0">Fast</span> <span class="hero-word" style="--word-index: 1">websites,</span></span>
+            <span class="hero-title-line" aria-hidden="true"><span class="hero-word" style="--word-index: 2">sharper</span> <span class="hero-word" style="--word-index: 3">graphics.</span></span>
           </h1>
-          <p class="hero-lede cinematic-reveal" data-reveal>Websites, graphics, and motion. Made to give your brand a look of its own.</p>
           <div class="hero-actions cinematic-reveal" data-reveal>
-            <a class="button primary magnetic" href="#featured-projects">View Featured Projects</a>
-            <a class="button secondary magnetic" href="https://www.linkedin.com/in/imivani/" data-linkedin target="_blank" rel="noreferrer">LinkedIn</a>
+            <a class="button specular-pill primary magnetic" href="#featured-projects">View Featured Projects</a>
+            <a class="button specular-pill secondary magnetic" href="https://www.linkedin.com/in/imivani/" data-linkedin target="_blank" rel="noreferrer">LinkedIn</a>
           </div>
         </div>
-
-        <div class="hero-stage cinematic-reveal" data-reveal data-parallax-stage aria-label="Selected Fluxframe visuals">
-          <div class="hero-glow" aria-hidden="true"></div>
-          <a class="floating-shot shot-primary" href="web-designs.html" data-depth="0.06" aria-label="Open iPredict web design">
-            <img src="assets/portfolio/07-upvotic-landing.png" alt="iPredict web design preview" width="1200" height="2591">
-            <span><strong>iPredict</strong><em>Web Design</em></span>
-          </a>
-          <a class="floating-shot shot-secondary" href="hype-bears.html" data-depth="-0.08" aria-label="Open Hype Bears project">
-            <img src="assets/portfolio/66-hype-bears-hero.jpeg" alt="Hype Bears project visual" width="1500" height="500">
-            <span><strong>Hype Bears</strong><em>Startup Project</em></span>
-          </a>
-          <a class="floating-shot shot-tertiary" href="pxn.html" data-depth="0.1" aria-label="Open PXN project">
-            <img src="assets/portfolio/55-gm-co-cover.png" alt="GM.CO and PXN project visual" width="795" height="621">
-            <span><strong>PXN</strong><em>Startup Project</em></span>
-          </a>
-          <a class="floating-shot shot-quaternary" href="web-designs.html" data-depth="-0.05" aria-label="Open CrazyRDP web design">
-            <img src="assets/portfolio/04-anonymous-hosting-page.png" alt="CrazyRDP web design preview" width="1200" height="3704">
-            <span><strong>CrazyRDP</strong><em>Landing Page</em></span>
-          </a>
-        </div>
-        <button class="motion-toggle" type="button" data-motion-toggle aria-pressed="false" hidden>
-          <span class="motion-toggle-icon" aria-hidden="true"></span><span data-motion-label>Pause motion</span>
-        </button>
       </section>
 
       <section class="featured-projects" id="featured-projects" aria-labelledby="featured-projects-title">
@@ -229,7 +201,7 @@
           <p class="eyebrow" data-reveal>Web Designs</p>
           <h2 id="web-title" data-reveal>Web designs that make the offer impossible to miss.</h2>
           <p data-reveal>Full-length website designs stay tall, textured, and inspectable without turning the page into a flat grid.</p>
-          <a class="button secondary magnetic" href="web-designs.html" data-reveal>Open Web Designs</a>
+          <a class="button specular-pill secondary magnetic" href="web-designs.html" data-reveal>Open Web Designs</a>
         </div>
         <div class="web-shot-list">
           <a class="web-shot web-shot-tall" href="web-designs.html" data-reveal>
@@ -256,7 +228,7 @@
           <span></span>
           <strong>All Work</strong>
         </div>
-        <a class="button primary magnetic" href="projects.html" data-reveal>Explore the full archive</a>
+        <a class="button specular-pill primary magnetic" href="projects.html" data-reveal>Explore the full archive</a>
       </section>
     </main>
 
@@ -265,7 +237,7 @@
         <p class="eyebrow">Work With FluxFrame</p>
         <h2>Need a website or graphic system that actually hits?</h2>
         <p>Reach out on LinkedIn for web design, startup graphics, and visual direction.</p>
-        <a class="button primary magnetic" href="https://www.linkedin.com/in/imivani/" data-linkedin target="_blank" rel="noreferrer">Reach out on LinkedIn</a>
+        <a class="button specular-pill primary magnetic" href="https://www.linkedin.com/in/imivani/" data-linkedin target="_blank" rel="noreferrer">Reach out on LinkedIn</a>
       </div>
       <div class="footer-links">
         <a href="projects.html">All Projects</a>

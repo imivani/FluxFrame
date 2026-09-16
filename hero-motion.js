@@ -4,39 +4,26 @@
   const hero = document.querySelector(".home-experience .cinematic-hero");
   if (!hero) return;
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const toggle = document.querySelector("[data-motion-toggle]");
-  const label = document.querySelector("[data-motion-label]");
-  let userPaused = false;
   let syncArtwork = () => {};
   let syncVideos = () => {};
+  let syncPills = () => {};
 
   const syncMotion = () => {
-    const paused = reduced.matches || userPaused;
-    document.body.classList.toggle("user-motion-paused", paused);
-    toggle.setAttribute("aria-pressed", String(paused));
-    label.textContent = paused ? "Resume motion" : "Pause motion";
-    toggle.hidden = reduced.matches;
     syncArtwork();
     syncVideos();
+    syncPills();
   };
-  toggle.addEventListener("click", () => {
-    userPaused = !userPaused;
-    syncMotion();
-  });
   reduced.addEventListener("change", syncMotion);
-  document.addEventListener("visibilitychange", () => {
-    syncArtwork();
-    syncVideos();
-  });
+  document.addEventListener("visibilitychange", syncMotion);
 
-  // Paper's framework-independent Mesh Gradient uses the same renderer as its
-  // React component. Vendor bundle is pinned; the static CSS blend is a fallback.
-  const initMesh = async () => {
+  // React Bits' Silk shader, using its exact color/scale/speed settings and the
+  // existing renderer. The quieter Paper mesh remains behind the full page.
+  const initBackgrounds = async () => {
     const { ShaderMount, meshGradientFragmentShader, getShaderColorFromString } =
       await import("./assets/vendor/paper-mesh.js");
-    const container = document.querySelector("[data-mesh-gradient]");
+    const { silkFragmentShader } = await import("./assets/vendor/silk.js");
     const colors = ["#111326", "#4b386f", "#c64573", "#e88369", "#255969"].map(getShaderColorFromString);
-    const mount = new ShaderMount(container, meshGradientFragmentShader, {
+    const uniforms = {
       u_colors: colors,
       u_colorsCount: colors.length,
       u_distortion: 0.58,
@@ -52,15 +39,27 @@
       u_originY: 0.5,
       u_worldWidth: 0,
       u_worldHeight: 0,
-    }, { alpha: false, antialias: false, powerPreference: "low-power" }, 0, 8000, 1, 900000);
+    };
+    const options = { alpha: false, antialias: false, powerPreference: "low-power" };
+    const container = document.querySelector("[data-silk-background]");
+    const ambient = document.querySelector("[data-page-mesh]");
+    const mount = new ShaderMount(container, silkFragmentShader, {
+      uColor: [92 / 255, 11 / 255, 52 / 255],
+      uSpeed: 2.3, uScale: 0.8, uRotation: 0, uNoiseIntensity: 1.5, uLightMode: 0,
+    }, options, 0, 0, 1, 1600000);
+    const pageMount = new ShaderMount(ambient, meshGradientFragmentShader,
+      { ...uniforms, u_scale: 0.85, u_grainOverlay: 0 }, options, 0, 12500, 1, 360000);
     let visible = true;
     let disposed = false;
     syncArtwork = () => {
       if (disposed) return;
-      const run = visible && !document.hidden && !reduced.matches && !userPaused;
-      mount.setSpeed(run ? 0.45 : 0);
+      const animate = !document.hidden && !reduced.matches;
+      const run = visible && animate;
+      // Silk's useFrame advances its time at 0.1 * delta; preserve that timing.
+      mount.setSpeed(run ? 0.1 : 0);
+      pageMount.setSpeed(animate ? 0.12 : 0);
       container.dataset.motion = run ? "running" : "paused";
-      hero.classList.toggle("hero-motion-paused", !run);
+      ambient.dataset.motion = animate ? "running" : "paused";
     };
     const visibility = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
@@ -68,20 +67,32 @@
     });
     visibility.observe(hero);
     container.classList.add("is-ready");
+    ambient.classList.add("is-ready");
     const canvas = container.querySelector("canvas");
     canvas?.addEventListener("webglcontextlost", () => container.classList.remove("is-ready"));
+    ambient.querySelector("canvas")?.addEventListener("webglcontextlost", () => ambient.classList.remove("is-ready"));
     window.addEventListener("pagehide", (event) => {
       mount.setSpeed(0);
+      pageMount.setSpeed(0);
       if (!event.persisted) {
         disposed = true;
         visibility.disconnect();
         mount.dispose();
+        pageMount.dispose();
       }
     });
     window.addEventListener("pageshow", syncArtwork);
     syncArtwork();
   };
-  initMesh().catch(() => {});
+  initBackgrounds().catch(() => {});
+
+  Promise.all([
+    import("./assets/vendor/paper-mesh.js"),
+    import("./pill-motion.js"),
+  ]).then(([{ ShaderMount }, { initSpecularPills }]) => {
+    syncPills = initSpecularPills(ShaderMount, reduced);
+    syncPills();
+  }).catch(() => {});
 
   // Highlight the chapter that crosses the reading zone; native page scrolling
   // and ordinary anchor navigation remain available at every viewport size.
@@ -108,7 +119,7 @@
   let videosVisible = false;
   let videosPaused = false;
   syncVideos = () => {
-    const stopped = userPaused || reduced.matches || videosPaused;
+    const stopped = reduced.matches || videosPaused;
     videoToggle.hidden = reduced.matches;
     videoToggle.textContent = stopped ? "Play previews" : "Pause previews";
     videoToggle.setAttribute("aria-pressed", String(stopped));
@@ -118,10 +129,7 @@
     }
   };
   videoToggle.addEventListener("click", () => {
-    if (userPaused || videosPaused) {
-      userPaused = false;
-      videosPaused = false;
-    } else videosPaused = true;
+    videosPaused = !videosPaused;
     syncMotion();
   });
   if ("IntersectionObserver" in window) {

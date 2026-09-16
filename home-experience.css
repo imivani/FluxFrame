@@ -1,17 +1,36 @@
-/* Creative studio / retain the established hero composition.
+/* Creative studio / centered hero following the supplied React Bits reference.
    DESIGN_VARIANCE: 8, MOTION_INTENSITY: 7, VISUAL_DENSITY: 3.
-   Paper Shaders supplies the mesh; its color stays inside the hero. */
+   React Bits Silk sits above a quieter page-wide Paper mesh. */
 body.home-experience { background: #030405; }
 body.home-experience::before,
 body.home-experience::after,
 .home-experience .ambient-field { display: none; }
 
-.home-experience .cinematic-hero { position: relative; isolation: isolate; padding-top: 96px; padding-bottom: 112px; }
-.home-experience .hero-copy-block { gap: 24px; }
-.home-experience .hero-lede { max-width: 42ch; color: #dedbe5; font-size: 1.125rem; line-height: 1.65; }
+.page-mesh {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.17;
+  background: radial-gradient(ellipse at 82% 18%, #ad4269, transparent 65%), radial-gradient(ellipse at 15% 80%, #245468, transparent 60%);
+}
+[data-page-mesh] { position: absolute; inset: 0; opacity: 0; transition: opacity 1200ms ease; }
+[data-page-mesh].is-ready { opacity: 1; }
+
+.home-experience .cinematic-hero {
+  position: relative;
+  isolation: isolate;
+  min-height: clamp(580px, 72svh, 780px);
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  padding: 76px 20px 110px;
+}
+.home-experience .hero-copy-block { gap: 34px; justify-items: center; text-align: center; }
+.home-experience .cinematic-title { max-width: 22ch; font-size: clamp(3.2rem, 7.2vw, 7.25rem); line-height: 1.02; letter-spacing: -0.045em; text-shadow: 0 4px 30px #00000055; }
+.home-experience .hero-actions { justify-content: center; flex-direction: row; gap: 14px; margin-top: 4px; }
 .home-experience .hero-actions .button { white-space: nowrap; }
-.home-experience .hero-actions .secondary { background: #08091360; }
-.hero-mesh {
+.hero-silk {
   position: absolute;
   z-index: -1;
   left: calc(50% - 50vw);
@@ -20,46 +39,81 @@ body.home-experience::after,
   bottom: -1px;
   pointer-events: none;
   overflow: hidden;
-  background: radial-gradient(ellipse at 72% 20%, #c64573, transparent 60%), radial-gradient(ellipse at 20% 20%, #4b386f, transparent 60%), #255969;
-  mask-image: linear-gradient(to bottom, #000 0%, #000 48%, #000b 72%, transparent 100%);
+  background: radial-gradient(ellipse at 72% 20%, #5c0b34, transparent 60%), radial-gradient(ellipse at 20% 80%, #3b0923, transparent 65%), #090307;
+  mask-image: linear-gradient(to bottom, #000 0%, #000 75%, transparent 100%);
 }
-[data-mesh-gradient] { position: absolute; inset: 0; opacity: 0; transition: opacity 900ms ease; }
-[data-mesh-gradient].is-ready { opacity: 1; }
-.hero-mesh::after {
+[data-silk-background] { position: absolute; inset: 0; opacity: 0; transition: opacity 900ms ease; }
+[data-silk-background].is-ready { opacity: 1; }
+.hero-silk::after {
   position: absolute;
   inset: 0;
   content: "";
-  background: linear-gradient(90deg, #06070f99, #06070f30 65%, #06070f18), linear-gradient(180deg, #03040510, #03040508 35%, #03040545 70%, #030405);
+  background: radial-gradient(ellipse at 50% 40%, #08020610, transparent 62%);
 }
 
-.motion-toggle {
-  position: absolute;
-  right: 0;
-  bottom: 40px;
-  z-index: 3;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 44px;
-  padding: 8px 14px;
-  border: 1px solid #ffffff24;
-  border-radius: 24px;
-  color: #b9bac1;
-  font: inherit;
-  font-size: 0.8rem;
-  background: #08090bcc;
-  cursor: pointer;
-  transition: color 180ms, border-color 180ms;
+/* React Bits Blur Text's word stagger and blur-to-focus entrance, adapted to
+   native CSS. Four brief animations run once; no looping headline effects. */
+.home-experience .silk-title .hero-word {
+  display: inline-block;
+  animation: heroWordFocus 720ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(80ms + var(--word-index) * 85ms);
 }
-.motion-toggle[hidden], .story-video-toggle[hidden] { display: none; }
-.motion-toggle:hover { color: white; border-color: #ffffff66; }
-.motion-toggle-icon { width: 10px; height: 11px; border-inline: 2px solid currentColor; }
-.motion-toggle[aria-pressed="true"] .motion-toggle-icon {
-  width: 0;
-  height: 0;
-  border: 6px solid transparent;
-  border-left: 9px solid currentColor;
-  border-right: 0;
+@keyframes heroWordFocus {
+  from { opacity: 0; filter: blur(10px); transform: translateY(24px); }
+  65% { opacity: 0.8; filter: blur(2px); transform: translateY(-2px); }
+  to { opacity: 1; filter: blur(0); transform: translateY(0); }
+}
+
+.story-video-toggle[hidden] { display: none; }
+
+/* React Bits-inspired glass surface, with the original specular rim shader. */
+.home-experience .button.specular-pill {
+  --pill-surface: #11131dde;
+  --pill-glow: #a8c6ff;
+  min-height: 52px;
+  padding-inline: 24px;
+  gap: 14px;
+  isolation: isolate;
+  border: 1px solid #ffffff30;
+  border-radius: 999px;
+  color: #f9f5fa;
+  background: linear-gradient(180deg, #ffffff12, #ffffff00 75%), var(--pill-surface);
+  box-shadow: inset 0 1px 0 #ffffff18, inset 0 -1px 0 #00000040, 0 8px 24px #00000030;
+  backdrop-filter: blur(12px);
+  transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1), border-color 260ms, box-shadow 320ms;
+}
+.home-experience .button.specular-pill.primary {
+  --pill-surface: #501330ed;
+  --pill-glow: #ffacc8;
+  border-color: #ffc5d44f;
+}
+.specular-pill::before {
+  position: absolute;
+  content: "";
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: linear-gradient(120deg, transparent 10%, #ffffff10 45%, #ffffff20 50%, transparent 70%);
+  opacity: 0;
+  transform: translateX(-16%);
+  transition: opacity 250ms, transform 550ms cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+.specular-pill .specular-fx { position: absolute; inset: -12px; z-index: 1; pointer-events: none; }
+.specular-fx canvas { display: block; width: 100%; height: 100%; }
+.specular-label, .home-experience .specular-pill::after { position: relative; z-index: 2; }
+.home-experience .specular-pill::after { flex: 0 0 16px; transition: transform 280ms; }
+.home-experience .button.specular-pill:focus-visible { outline: 2px solid #ffc1d5; outline-offset: 5px; }
+.home-experience .button.specular-pill:active { transform: translateY(0) scale(0.97); }
+
+@media (hover: hover) and (pointer: fine) {
+  .home-experience .button.specular-pill:hover {
+    border-color: #ffffff62;
+    box-shadow: inset 0 1px 0 #ffffff26, inset 0 -1px 0 #00000040, 0 12px 30px #00000040, 0 0 22px color-mix(in srgb, var(--pill-glow) 14%, transparent);
+    transform: translateY(-2px);
+  }
+  .specular-pill:hover::before { opacity: 1; transform: translateX(0); }
+  .home-experience .specular-pill:hover::after { transform: translateX(3px); }
 }
 
 .home-experience .eyebrow {
@@ -145,12 +199,6 @@ body.home-experience::after,
 @keyframes graphicDrift { from { transform: translateY(28px) scale(1.04); } to { transform: translateY(-20px) scale(0.98); } }
 @keyframes motionDrift { from { transform: translateY(22px) rotate(-9deg) scale(1.05); } to { transform: translateY(-20px) rotate(-3deg) scale(1.05); } }
 
-.home-experience.user-motion-paused .ambient-field::after { animation-play-state: paused; }
-.home-experience.user-motion-paused .floating-shot { animation-play-state: paused; transform: none; }
-.home-experience.user-motion-paused .talk-marquee span { animation-play-state: paused; }
-.home-experience .hero-motion-paused .floating-shot { animation-play-state: paused; }
-.home-experience.user-motion-paused [data-story-drift] { animation: none; }
-
 @media (max-width: 1080px) {
   .home-experience .scroll-story { grid-template-columns: 1fr 1fr; gap: 36px; }
   .home-experience .story-pin { position: sticky; top: 110px; }
@@ -159,12 +207,11 @@ body.home-experience::after,
 }
 
 @media (max-width: 760px) {
-  .home-experience .cinematic-hero { padding-top: 74px; padding-bottom: 92px; }
-  .home-experience .hero-copy-block { gap: 20px; }
-  .home-experience .cinematic-title { font-size: clamp(2rem, 10vw, 3.4rem); }
-  .home-experience .hero-lede { font-size: 1rem; }
-  .hero-mesh { mask-image: linear-gradient(to bottom, #000 0%, #000 30%, #0009 62%, transparent 100%); }
-  .motion-toggle { right: 20px; bottom: 30px; }
+  .home-experience .cinematic-hero { min-height: clamp(500px, 68svh, 620px); padding: 68px 18px 98px; }
+  .home-experience .hero-copy-block { gap: 28px; width: 100%; }
+  .home-experience .cinematic-title { font-size: clamp(2.2rem, 10vw, 3.8rem); }
+  .home-experience .hero-actions { flex-wrap: wrap; gap: 12px; }
+  .home-experience .hero-actions .button { width: auto; padding-inline: 16px; font-size: 0.84rem; }
   .home-experience .featured-projects .section-kicker { align-items: flex-start; gap: 18px; }
   .home-experience .featured-project-grid { margin-top: 30px; }
   .home-experience .scroll-story { grid-template-columns: 1fr; gap: 44px; padding-block: 74px; }
@@ -182,7 +229,21 @@ body.home-experience::after,
   .story-caption h3 { font-size: 1.65rem; }
 }
 
+@media (max-width: 380px) {
+  .home-experience .hero-actions { flex-direction: column; width: min(100%, 248px); }
+  .home-experience .hero-actions .button { width: 100%; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  [data-mesh-gradient], .story-index a, .story-index a::after { transition: none; }
+  [data-silk-background], [data-page-mesh], .story-index a, .story-index a::after { transition: none; }
+  .home-experience .silk-title .hero-word { animation: none; }
   .home-experience [data-story-drift] { animation: none; }
+  .home-experience .button.specular-pill,
+  .home-experience .button.specular-pill::before,
+  .home-experience .button.specular-pill::after { transition: none; transform: none; }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .home-experience .button.specular-pill { backdrop-filter: none; --pill-surface: #18121b; }
+  .home-experience .button.specular-pill.primary { --pill-surface: #501330; }
 }
