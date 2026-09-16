@@ -48,8 +48,8 @@
     const ambient = document.querySelector("[data-page-mesh]");
     const compact = window.matchMedia("(max-width: 760px), (pointer: coarse)");
     const mount = new ShaderMount(container, silkFragmentShader, {
-      uColor: [92 / 255, 11 / 255, 52 / 255],
-      uSpeed: 2.3, uScale: 0.8, uRotation: 0, uNoiseIntensity: 1.5, uLightMode: 0,
+      uColor: [244 / 255, 63 / 255, 94 / 255],
+      uSpeed: 5, uScale: 1, uRotation: 0, uNoiseIntensity: 1.5, uLightMode: 0,
     }, options, 0, 0, 1, compact.matches ? 360000 : 1600000);
     const pageMount = new ShaderMount(ambient, meshGradientFragmentShader,
       { ...uniforms, u_scale: 0.85, u_grainOverlay: 0 }, options, 0, 12500, 1, compact.matches ? 120000 : 360000);

@@ -42,7 +42,7 @@ body.home-experience::after,
   bottom: -1px;
   pointer-events: none;
   overflow: hidden;
-  background: radial-gradient(ellipse at 72% 20%, #5c0b34, transparent 60%), radial-gradient(ellipse at 20% 80%, #3b0923, transparent 65%), #090307;
+  background: radial-gradient(ellipse at 72% 20%, #f43f5e, transparent 60%), radial-gradient(ellipse at 20% 80%, #7a2030, transparent 65%), #0c0406;
   mask-image: linear-gradient(to bottom, #000 0%, #000 75%, transparent 100%);
 }
 [data-silk-background] { position: absolute; inset: 0; opacity: 0; transition: opacity 900ms ease; }

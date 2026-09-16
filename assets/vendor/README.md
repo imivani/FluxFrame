@@ -29,11 +29,11 @@ The original MIT license with Commons Clause is preserved in
 
 `silk.js` adapts the official Silk fragment shader to GLSL 300 and the existing
 renderer's screen-space UVs and clock. Pattern, grain and color calculations
-are unchanged. Hero settings: color `#5c0b34`, speed `2.3`, scale `0.8`, noise
+are unchanged. Hero settings: color `#F43F5E`, speed `5`, scale `1`, noise
 `1.5`, rotation `0`; the clock advances at `0.1 * delta` as in the React source.
 
 Source: https://github.com/DavidHDev/react-bits/blob/main/src/content/Backgrounds/Silk/Silk.jsx
-Reference: https://reactbits.dev/backgrounds/silk?color=5c0b34&speed=2.3&scale=0.8
+Reference: https://reactbits.dev/backgrounds/silk?color=F43F5E
 
 The headline's one-time CSS word stagger adapts the free Blur Text component's
 blur, opacity and vertical-movement keyframes. Travel and timing are reduced
